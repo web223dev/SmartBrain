@@ -4,7 +4,7 @@ const ImageLinkForm = ({ onInputChange, onButtonSubmit }) => {
   return (
     <div className='mt-8 sm:flex sm:justify-center'>
       <input
-        id="email-address"
+        id="imageLinkForm-email"
         name="email"
         type="email"
         autoComplete="email"

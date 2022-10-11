@@ -8,6 +8,8 @@ import Logo from './components/Logo/Logo'
 import Rank from './components/Rank/Rank'
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import Signin from './components/Signin/Signin';
+import Register from './components/Register/Register';
 import particleOptions from './ParticlesOptions';
 
 const API_KEY = '5ef345b6cbf9451f8ab99e665cb1ddce';
@@ -16,6 +18,8 @@ function App() {
   const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [box, setBox] = useState({});
+  const [route, setRoute] = useState('signin');
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const particlesInit = useCallback(async (engine) => {
     await loadFull(engine);
@@ -79,6 +83,15 @@ function App() {
       .catch(error => console.log('error', error));
   }
 
+  const onRouteChange = (route) => {
+    if(route === 'signout'){
+      setIsSignedIn(false);
+    } else if(route === 'home') {
+      setIsSignedIn(true);
+    } 
+    setRoute(route);    
+  }
+
   return (
     <div className="App bg-gradient-to-r from-green-400 to-blue-500 h-screen p-4">
       <Particles 
@@ -89,11 +102,21 @@ function App() {
         options={particleOptions}
       />
       <div className="relative">
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit} />
-        <FaceRecognition box={box} imageUrl={imageUrl}/>
+        <Navigation onRouteChange={onRouteChange} isSignedIn={isSignedIn}/>
+        {
+          route === 'home'
+          ? <div>
+              <Logo />
+              <Rank />
+              <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit} />
+              <FaceRecognition box={box} imageUrl={imageUrl}/>
+            </div>
+          : (
+            route === 'signin'
+            ? <Signin onRouteChange={onRouteChange} />
+            : <Register onRouteChange={onRouteChange} />
+          )
+        }
       </div>
     </div>
   );
