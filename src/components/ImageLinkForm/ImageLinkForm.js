@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ImageLinkForm = () => {
+const ImageLinkForm = ({ onInputChange, onButtonSubmit }) => {
   return (
     <div className='mt-8 sm:flex sm:justify-center'>
       <input
@@ -11,11 +11,12 @@ const ImageLinkForm = () => {
         required
         className="w-full rounded-md border-gray-300 px-5 py-3 placeholder-gray-500 focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-lg"
         placeholder="Enter your image url"
+        onChange={onInputChange}
       />
       <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-        <button
-          type="submit"
+        <button          
           className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-5 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          onClick={onButtonSubmit}
         >
           Detect
         </button>

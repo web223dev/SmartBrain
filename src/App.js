@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './App.css'
 import { useCallback } from "react";
 import Particles from "react-tsparticles";
@@ -6,126 +7,77 @@ import Navigation from './components/Navigation/Navigation'
 import Logo from './components/Logo/Logo'
 import Rank from './components/Rank/Rank'
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
+import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import particleOptions from './ParticlesOptions';
 
-const particleOptions = {
-  particles: {
-    number: {
-      value: 52,
-      density: {
-        enable: true,
-        value_area: 631.3280775270874
-      }
-    },
-    color: {
-      value: "#fff"
-    },
-    shape: {
-      type: "circle",
-      stroke: {
-        width: 0,
-        color: "#000000"
-      },
-      polygon: {
-        nb_sides: 5
-      },
-      image: {
-        src: "img/github.svg",
-        width: 100,
-        height: 100
-      }
-    },
-    opacity: {
-      value: 0.5,
-      random: true,
-      anim: {
-        enable: false,
-        speed: 1,
-        opacity_min: 0.1,
-        sync: false
-      }
-    },
-    size: {
-      value: 5,
-      random: true,
-      anim: {
-        enable: false,
-        speed: 40,
-        size_min: 0.1,
-        sync: false
-      }
-    },
-    line_linked: {
-      enable: false,
-      distance: 500,
-      color: "#ffffff",
-      opacity: 0.4,
-      width: 2
-    },
-    move: {
-      enable: true,
-      speed: 1.5,
-      direction: "bottom",
-      random: false,
-      straight: false,
-      out_mode: "out",
-      bounce: false,
-      attract: {
-        enable: false,
-        rotateX: 600,
-        rotateY: 1200
-      }
-    }
-  },
-  interactivity: {
-    detect_on: "canvas",
-    events: {
-      onhover: {
-        enable: false,
-        mode: "bubble"
-      },
-      onclick: {
-        enable: true,
-        mode: "repulse"
-      },
-      resize: true
-    },
-    modes: {
-      grab: {
-        distance: 400,
-        line_linked: {
-          opacity: 0.5
-        }
-      },
-      bubble: {
-        distance: 400,
-        size: 4,
-        duration: 0.3,
-        opacity: 1,
-        speed: 3
-      },
-      repulse: {
-        distance: 200,
-        duration: 0.4
-      },
-      push: {
-        particles_nb: 4
-      },
-      remove: {
-        particles_nb: 2
-      }
-    }
-  },
-  retina_detect: true
-}
+const API_KEY = '5ef345b6cbf9451f8ab99e665cb1ddce';
 
 function App() {
+  const [input, setInput] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [box, setBox] = useState({});
+
   const particlesInit = useCallback(async (engine) => {
     await loadFull(engine);
   }, []);
 
   const particlesLoaded = useCallback(async (container) => {
-    await console.log(container);
+    // await console.log(container);
+    return container
   }, []);
+
+  const calculateFaceLocation = (data) => {
+    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+    }
+  }
+
+  const displayFaceBox = (box) => {    
+    setBox(box);
+  }
+
+  const onInputChange = (event) => {
+    setInput(event.target.value);
+  }
+
+  const onButtonSubmit = () => {
+    setImageUrl(input)
+    const raw = JSON.stringify({
+      "user_app_id": {
+        "user_id": "clarifai",
+        "app_id": "main"
+      },
+      "inputs": [
+          {
+              "data": {
+                  "image": {
+                      "url": input
+                  }
+              }
+          }
+      ]
+    });
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Key ' + API_KEY
+      },
+      body: raw
+    };
+
+    fetch(`https://api.clarifai.com/v2/models/face-detection/versions/6dc7e46bc9124c5c8824be4822abe105/outputs`, requestOptions)
+      .then(response => response.json())
+      .then(result => displayFaceBox(calculateFaceLocation(result)))
+      .catch(error => console.log('error', error));
+  }
 
   return (
     <div className="App bg-gradient-to-r from-green-400 to-blue-500 h-screen p-4">
@@ -136,12 +88,12 @@ function App() {
         loaded={particlesLoaded}
         options={particleOptions}
       />
-      <div class="relative">
+      <div className="relative">
         <Navigation />
         <Logo />
         <Rank />
-        <ImageLinkForm />
-        {/* <FaceRecognition /> */}
+        <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit} />
+        <FaceRecognition box={box} imageUrl={imageUrl}/>
       </div>
     </div>
   );
